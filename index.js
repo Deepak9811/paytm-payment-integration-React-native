@@ -32,6 +32,334 @@ app.get("/", (req, res) => {
 
 // const orderId = crypto.randomBytes(16).toString("hex");
 
+
+app.post("/upi_method",async(req,res)=>{
+  try {
+    // const orderId = crypto.randomBytes(16).toString("hex");
+    const { email, name, amount, orderId } = req.body;
+
+    var paytmParams = {};
+
+    paytmParams.body = {
+      requestType: "Payment",
+      mid: process.env.MERCHANT_ID,
+      websiteName: process.env.WEBSITE,
+      orderId: orderId,
+      callbackUrl:
+        "https://securegw.paytm.in/theia/paytmCallback?ORDER_ID=" + orderId,
+      txnAmount: {
+        value: amount,
+        currency: "INR",
+      },
+      userInfo: {
+        custId: "CUST_001",
+      },
+      "enablePaymentMode" : [{
+        "mode":"UPI",
+    }]
+    };
+
+    let txnInfos = await initializePayment(paytmParams);
+    txnInfos = JSON.parse(txnInfos);
+    console.log("txn Info :- ", txnInfos.body.txnToken);
+
+
+//     var paytmParams = {};
+
+// paytmParams.body = {
+//     "vpa"           : "8860782941832@paytm"
+// };
+
+// paytmParams.head = {
+//     "tokenType"     : "TXN_TOKEN",
+//     "token"         : txnInfos.body.txnToken
+// };
+
+// var post_data = JSON.stringify(paytmParams);
+
+// var options = {
+
+//     /* for Staging */
+//     // hostname: 'securegw-stage.paytm.in',
+
+//     /* for Production */
+//     hostname: 'securegw.paytm.in',
+
+//     port: 443,
+//     path: `/theia/api/v1/vpa/validate?mid=${process.env.MERCHANT_ID}&orderId=${orderId}`,
+//     method: 'POST',
+//     headers: {
+//         'Content-Type': 'application/json',
+//         'Content-Length': post_data.length
+//     }
+// };
+
+// var response = "";
+// var post_req = https.request(options, function(post_res) {
+//     post_res.on('data', function(chunk) {
+//         response += chunk;
+//     });
+
+//     post_res.on('end', function() {
+//         console.log('Response: ', response);
+
+//         let txnTokenCheck = response;
+//           txnTokenCheck = JSON.parse(txnTokenCheck);
+//           console.log("UPI token :- ", txnTokenCheck.body.vpa);
+
+//         if (txnTokenCheck && txnTokenCheck.body.resultInfo.resultStatus == "S") {
+//                     //transaction initiation successful.
+//                     //sending redirect to paytm page form with hidden inputs.
+//                     const hiddenInput = {
+//                       txnToken: txnInfos.body.txnToken,
+//                       mid: process.env.MERCHANT_ID,
+//                       orderId: orderId,
+//                       vpa:txnTokenCheck.body.vpa
+                      
+//                     };
+//                     res.json({ message: "success", hiddenInput });
+//                     // res.render('intermediateForm.ejs', {txnTokenCheck});
+//                   } else if (txnTokenCheck) {
+//                     //payment initialization failed.
+//                     //send custom txnTokenCheck
+//                     //donot send this txnTokenCheck. for debugging purpose only.
+//                     res.json({
+//                       message: "cannot initiate transaction",
+//                       transactionResultInfo: txnTokenCheck.body.resultInfo,
+//                     });
+//                   } else {
+//                     //payment initialization failed.
+//                     //send custom response
+//                     //donot send this response. for debugging purpose only.
+//                     res.json({ message: "someting else happens" });
+//                   }
+
+
+
+//     });
+// });
+
+// post_req.write(post_data);
+// post_req.end();
+
+
+
+
+
+
+
+
+    var paytmParamss = {};
+    
+    paytmParamss.body = {
+      "requestType" : "NATIVE",
+      "mid"         : process.env.MERCHANT_ID,
+      "orderId"     : orderId,
+      "paymentMode" : "UPI_INTENT",
+      "payerAccount": "7777777777@paytm",
+      paymentFlow   : "NONE"
+  };
+
+  paytmParamss.head = {
+      "txnToken"    : txnInfos.body.txnToken
+  };
+  
+  var post_data = JSON.stringify(paytmParamss);
+  
+  var options = {
+  
+      /* for Staging */
+      hostname: 'securegw-stage.paytm.in',
+  
+      /* for Production */
+      // hostname: 'securegw.paytm.in',
+  
+      port: 443,
+      path: `/theia/api/v1/processTransaction?mid=${process.env.MERCHANT_ID}&orderId=`+orderId,
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': post_data.length
+      }
+  };
+  
+  var response = "";
+  var post_req = https.request(options, function(post_res) {
+      post_res.on('data', function (chunk) {
+          response += chunk;
+      });
+  
+      post_res.on('end', function(){
+          console.log('Response: ', response);
+
+          let txnTokenCheck = response;
+          txnTokenCheck = JSON.parse(txnTokenCheck);
+          console.log("UPI token :- ", txnTokenCheck.body.deepLinkInfo);
+
+          if (txnTokenCheck && txnTokenCheck.body.resultInfo.resultStatus == "S") {
+            //transaction initiation successful.
+            //sending redirect to paytm page form with hidden inputs.
+            const hiddenInput = {
+              txnToken: txnInfos.body.txnToken,
+              mid: process.env.MERCHANT_ID,
+              orderId: orderId,
+              deepLink:txnTokenCheck.body.deepLinkInfo.deepLink,
+              cashierRequestId:txnTokenCheck.body.deepLinkInfo.cashierRequestId,
+              transId:txnTokenCheck.body.deepLinkInfo.transId,
+            };
+            res.json({ message: "success", hiddenInput });
+            // res.render('intermediateForm.ejs', {txnTokenCheck});
+          } else if (txnTokenCheck) {
+            //payment initialization failed.
+            //send custom txnTokenCheck
+            //donot send this txnTokenCheck. for debugging purpose only.
+            res.json({
+              message: "cannot initiate transaction",
+              transactionResultInfo: txnTokenCheck.body.resultInfo,
+            });
+          } else {
+            //payment initialization failed.
+            //send custom response
+            //donot send this response. for debugging purpose only.
+            res.json({ message: "someting else happens" });
+          }
+
+
+
+      });
+  }); 
+  post_req.write(post_data);
+  post_req.end();  
+    
+  } catch (error) {
+    console.log(error)
+  }
+})
+
+
+// testing "paymentMode" : "UPI",
+
+// app.post("/upi_method_test",async(req,res)=>{
+//   try {
+//     // const orderId = crypto.randomBytes(16).toString("hex");
+//     const { email, name, amount, orderId } = req.body;
+
+//     var paytmParams = {};
+
+//     paytmParams.body = {
+//       requestType: "Payment",
+//       mid: process.env.MERCHANT_ID,
+//       websiteName: process.env.WEBSITE,
+//       orderId: orderId,
+//       callbackUrl:
+//         "https://securegw.paytm.in/theia/paytmCallback?ORDER_ID=" + orderId,
+//       txnAmount: {
+//         value: amount,
+//         currency: "INR",
+//       },
+//       userInfo: {
+//         custId: "CUST_001",
+//       },
+//       "enablePaymentMode" : [{
+//         "mode":"UPI",
+//     }]
+//     };
+
+//     let txnInfos = await initializePayment(paytmParams);
+//     txnInfos = JSON.parse(txnInfos);
+//     console.log("txn Info :- ", txnInfos.body.txnToken);
+
+//     var paytmParamss = {};
+    
+//     paytmParamss.body = {
+//       "requestType" : "NATIVE",
+//       "mid"         : process.env.MERCHANT_ID,
+//       "orderId"     : orderId,
+//       "paymentMode" : "UPI",
+//       "payerAccount": "7678480868@okbizaxis",
+//       "authMode"    : "otp",
+//       paymentFlow   : "NONE"
+//   };
+
+//   paytmParamss.head = {
+//       "txnToken"    : txnInfos.body.txnToken
+//   };
+  
+//   var post_data = JSON.stringify(paytmParamss);
+  
+//   var options = {
+  
+//       /* for Staging */
+//       hostname: 'securegw-stage.paytm.in',
+  
+//       /* for Production */
+//       // hostname: 'securegw.paytm.in',
+  
+//       port: 443,
+//       path: `/theia/api/v1/processTransaction?mid=${process.env.MERCHANT_ID}&orderId=`+orderId,
+//       method: 'POST',
+//       headers: {
+//           'Content-Type': 'application/json',
+//           'Content-Length': post_data.length
+//       }
+//   };
+  
+//   var response = "";
+//   var post_req = https.request(options, function(post_res) {
+//       post_res.on('data', function (chunk) {
+//           response += chunk;
+//       });
+  
+//       post_res.on('end', function(){
+//           console.log('Response: ', response);
+//           let txnTokenCheck = response;
+//           txnTokenCheck = JSON.parse(txnTokenCheck);
+//           console.log("UPI token :- ", txnTokenCheck.body.bankForm.redirectForm.content);
+
+//           if (txnTokenCheck && txnTokenCheck.body.resultInfo.resultStatus == "S") {
+//             //transaction initiation successful.
+//             //sending redirect to paytm page form with hidden inputs.
+//             const hiddenInput = {
+//               txnToken: txnInfos.body.txnToken,
+//               mid: process.env.MERCHANT_ID,
+//               orderId: orderId,
+//               payerVpa:txnTokenCheck.body.bankForm.redirectForm.content,
+              
+//               // deepLink:txnTokenCheck.body.deepLinkInfo.deepLink,
+//               // cashierRequestId:txnTokenCheck.body.deepLinkInfo.cashierRequestId,
+//               // transId:txnTokenCheck.body.deepLinkInfo.transId,
+//             };
+//             res.json({ message: "success", hiddenInput });
+//             // res.render('intermediateForm.ejs', {txnTokenCheck});
+//           } else if (txnTokenCheck) {
+//             //payment initialization failed.
+//             //send custom txnTokenCheck
+//             //donot send this txnTokenCheck. for debugging purpose only.
+//             res.json({
+//               message: "cannot initiate transaction",
+//               transactionResultInfo: txnTokenCheck.body.resultInfo,
+//             });
+//           } else {
+//             //payment initialization failed.
+//             //send custom response
+//             //donot send this response. for debugging purpose only.
+//             res.json({ message: "someting else happens" });
+//           }
+
+
+
+//       });
+//   }); 
+//   post_req.write(post_data);
+//   post_req.end();  
+    
+//   } catch (error) {
+//     console.log(error)
+//   }
+// })
+
+
+
 app.post("/payment", async (req, res) => {
   try {
     const { email, name, amount, orderId } = req.body;
@@ -59,11 +387,7 @@ app.post("/payment", async (req, res) => {
       userInfo: {
         custId: "CUST_001",
       },
-      enablePaymentMode: [
-        {
-          mode: "UPI",
-        },
-      ],
+     
     };
 
     /*
@@ -169,6 +493,10 @@ app.post("/payment", async (req, res) => {
     console.log(e);
   }
 });
+
+
+
+
 
 //use this end point to verify payment
 app.post("/verify-payment", async (req, res) => {

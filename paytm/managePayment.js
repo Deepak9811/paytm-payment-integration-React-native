@@ -4,7 +4,7 @@ const https = require('https');
 /**
  * 
  * call this function to create checksum and initiate payment API call.
- * @author saquib shaikh
+ * @author Deepak Singh
  * @param {object} paymentObject payload to create  checksumhash.
  * @return {string} API response with txnToken and status. Use JSON.parse to get txnToken.
  */
@@ -24,7 +24,7 @@ const initializePayment = async (paymentObject) =>{
 /**
  * 
  * call this function to create checksum and initiate payment API call.
- * @author saquib shaikh
+ * @author Deepak Singh
  * @param {object} paymentObject payload to API call.
  * @return {string} return promise with transaction info required for transaction.
  */
@@ -68,7 +68,7 @@ const initializAPIRequest = (paymentObject) =>{
 
 /**
  * 
- * @author saquib shaikh
+ * @author Deepak Singh
  * @param {object} paymentObject parameters received from paytm
  * @returns {object} return promise with paymentObject if cheksumhash verification true else returns false. 
  */
