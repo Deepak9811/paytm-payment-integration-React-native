@@ -63,6 +63,31 @@ app.post("/upi_method",async(req,res)=>{
     txnInfos = JSON.parse(txnInfos);
     console.log("txn Info :- ", txnInfos.body.txnToken);
 
+    // if (txnInfos && txnInfos.body.resultInfo.resultStatus == "S") {
+    //   //transaction initiation successful.
+    //   //sending redirect to paytm page form with hidden inputs.
+    //   const hiddenInput = {
+    //     txnToken: txnInfos.body.txnToken,
+    //     mid: process.env.MERCHANT_ID,
+    //     orderId: orderId,
+    //   };
+    //   res.json({ message: "success", hiddenInput });
+    //   // res.render('intermediateForm.ejs', {txnTokenCheck});
+    // }else if (txnInfos) {
+    //     //payment initialization failed.
+    //     //send custom txnInfos
+    //     //donot send this txnInfos. for debugging purpose only.
+    //     res.json({
+    //       message: "cannot initiate transaction",
+    //       transactionResultInfo: txnInfos.body.resultInfo,
+    //     });
+    //   } else {
+    //     //payment initialization failed.
+    //     //send custom response
+    //     //donot send this response. for debugging purpose only.
+    //     res.json({ message: "someting else happens" });
+    //   }
+
 
 //     var paytmParams = {};
 
@@ -156,7 +181,7 @@ app.post("/upi_method",async(req,res)=>{
       "mid"         : process.env.MERCHANT_ID,
       "orderId"     : orderId,
       "paymentMode" : "UPI_INTENT",
-      "payerAccount": "7777777777@paytm",
+      "payerAccount": "7678480868@okbizaxis",
       paymentFlow   : "NONE"
   };
 
@@ -165,6 +190,7 @@ app.post("/upi_method",async(req,res)=>{
   };
   
   var post_data = JSON.stringify(paytmParamss);
+  console.log("post_data :- ",post_data)
   
   var options = {
   
@@ -197,8 +223,8 @@ app.post("/upi_method",async(req,res)=>{
           console.log("UPI token :- ", txnTokenCheck.body.deepLinkInfo);
 
           if (txnTokenCheck && txnTokenCheck.body.resultInfo.resultStatus == "S") {
-            //transaction initiation successful.
-            //sending redirect to paytm page form with hidden inputs.
+            // transaction initiation successful.
+            // sending redirect to paytm page form with hidden inputs.
             const hiddenInput = {
               txnToken: txnInfos.body.txnToken,
               mid: process.env.MERCHANT_ID,
@@ -208,8 +234,9 @@ app.post("/upi_method",async(req,res)=>{
               transId:txnTokenCheck.body.deepLinkInfo.transId,
             };
             res.json({ message: "success", hiddenInput });
-            // res.render('intermediateForm.ejs', {txnTokenCheck});
-          } else if (txnTokenCheck) {
+            res.render('intermediateForm.ejs', {txnTokenCheck});
+          } 
+          else if (txnTokenCheck) {
             //payment initialization failed.
             //send custom txnTokenCheck
             //donot send this txnTokenCheck. for debugging purpose only.
@@ -502,7 +529,9 @@ app.post("/payment", async (req, res) => {
 app.post("/verify-payment", async (req, res) => {
   //req.body contains all data sent by paytm related to payment.
   //check checksumhash to verify transaction is not tampared.
-  const paymentObject = await verifyPayemntAuthenticity(req.body);
+  const data = req.body
+  console.log('data :- ',data)
+  const paymentObject = await verifyPayemntAuthenticity(data);
   console.log("paymentObject :- ", paymentObject);
 
   if (paymentObject) {
