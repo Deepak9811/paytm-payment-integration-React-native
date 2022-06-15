@@ -40,7 +40,7 @@ npm start
 ## Use in existing project
 Copy ```paytm``` folder in your project
 
-```javaScript
+```javaScript```
 const {initializePayment, verifyPayemntAuthenticity} = require('./paytm/managePayment');
 
 //use uuid instead of crypto for generating orderId.
@@ -110,11 +110,12 @@ URLRewrite:
 https://www.iis.net/downloads/microsoft/url-rewrite
 
 web.config:
+
        <configuration>
-               <system.webServer>
-               <handlers>
+         <system.webServer>
+            <handlers>
               <add name="iisnode" path="index.js" verb="*" modules="iisnode" />
-               </handlers>
+            </handlers>
 
       <rewrite>
         <rules>
