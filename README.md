@@ -102,8 +102,6 @@ Please make sure to update tests as appropriate.
 
 ## Node JS - IIS deployment support details
 
-node:
-http://go.microsoft.com/?linkid=9784334
 
 IISNode:
 https://github.com/azure/iisnode/releases/download/v0.2.21/iisnode-full-v0.2.21-x64.msi
