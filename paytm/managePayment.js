@@ -36,10 +36,10 @@ const initializAPIRequest = (paymentObject) =>{
         let options = {
 
             /* for Staging */
-            hostname: 'securegw-stage.paytm.in',
+            // hostname: 'securegw-stage.paytm.in',
     
             /* for Production */
-            // hostname: 'securegw.paytm.in',
+            hostname: 'securegw.paytm.in',
     
             port: 443,
             path: `/theia/api/v1/initiateTransaction?mid=${paymentObject.body.mid}&orderId=${paymentObject.body.orderId}`,
